@@ -1,0 +1,38 @@
+---
+- name: Ensure the .ssh directory exists
+  file:
+    path: "/home/{{ ansible_user_id }}/.ssh"
+    state: directory
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    mode: '0700'
+
+- name: Check if SSH key exists
+  stat:
+    path: "/home/{{ ansible_user_id }}/.ssh/{{ ssh_key_name }}"
+  register: ssh_key_present
+
+- name: Generate SSH key pair if it does not exist
+  openssh_keypair:
+    path: "/home/{{ ansible_user_id}}/.ssh/{{ ssh_key_name }}"
+    type: ed25519
+    owner: "{{ansible_user_id }}"
+    group: "{{ansible_user_id }}"
+    mode: '0600'
+  when: not ssh_key_present.stat.exists
+
+- name: Ensure the public key has correct permissions
+  file:
+    path: "/home/{{ ansible_user_id }}/.ssh/{{ ssh_key_name }}.pub"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    mode: '0644'
+  when: ssh_key_present.stat.exists
+
+- name: Copy public SSH key to remote server
+  authorized_key:
+    user: "{{ ssh_user }}"
+    state: present
+    key: "{{ lookup('file', '/home/{{ ansible_user_id }}/.ssh/{{ ssh_key_name }}.pub') }}"
+  delegate_to: "{{ ssh_server }}"
+  when: copy_ssh_key

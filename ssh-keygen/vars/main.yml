@@ -1,0 +1,2 @@
+# Set to true to copy the key to a remote server
+copy_ssh_key: true
