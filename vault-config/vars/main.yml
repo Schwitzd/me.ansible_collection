@@ -1,0 +1,6 @@
+---
+# Number of key shares to split the generated master key into
+key_shares: 5
+
+# Number of key shares required to reconstruct the root key
+key_threshold: 3

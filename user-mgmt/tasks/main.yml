@@ -1,0 +1,14 @@
+---
+- name: Enable the user
+  ansible.builtin.user:
+    name: "{{ username }}"
+    state: present
+    password_lock: false
+    shell: "/bin/bash"
+
+
+- name: Set the user password
+  ansible.builtin.user:
+    name: "{{ username }}"
+    password: "{{ new_password | password_hash('sha512') }}"
+    update_password: always

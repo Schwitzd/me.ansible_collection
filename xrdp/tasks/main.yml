@@ -1,0 +1,15 @@
+---
+- name: install xrdp
+  become: yes
+  apt:
+    name: xrdp
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Add user to ssl-cert group
+  user:
+    name: xrdp
+    groups: ssl-cert
+    append: yes
+  notify:
+    - Restart XRDP service

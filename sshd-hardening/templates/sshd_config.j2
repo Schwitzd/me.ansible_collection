@@ -1,0 +1,16 @@
+# SSHd Configuration
+Port {{ ssh_port }}
+PermitRootLogin {{ ssh_permit_root_login }}
+PermitEmptyPasswords {{ ssh_permit_empty_passwords }}
+Protocol {{ ssh_protocol }}
+ClientAliveInterval {{ client_alive_interval }}
+X11Forwarding {{ x11_forwarding }}
+MaxAuthTries {{ max_auth_tries }}
+PasswordAuthentication {{ password_authentication }}
+AllowUsers {{ ssh_allowed_users }}
+LoginGraceTime {{ login_grace_time }}
+
+{% if sftp_enabled %}
+# sFTP
+Subsystem sftp /usr/lib/openssh/sftp-server
+{% endif %}

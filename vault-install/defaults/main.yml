@@ -1,0 +1,6 @@
+---
+# Vault config file
+vault_config_path: "/etc/vault.d/vault.hcl"
+
+# Vault data path
+vault_data_path: "/var/lib/vault/data"

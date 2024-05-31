@@ -1,0 +1,27 @@
+---
+- name: Initialize Vault
+  become: false
+  command: vault operator init -key-shares "{{ key_shares }}" -key-threshold "{{ key_threshold }}" -format json
+  environment:
+    VAULT_ADDR: "http://127.0.0.1:8200"
+  register: vault_init_result
+  ignore_errors: true
+
+- name: Already Initialized Vault
+  fail:
+      msg: "Vault is already initialized"
+  when: "'Vault is already initialized' in vault_init_result.stderr"
+
+- name: Parse output of vault init
+  set_fact:
+    vault_init_parsed: "{{ vault_init_result.stdout | from_json }}"
+
+- name: Print Unseal keys
+  debug:
+    var: vault_init_parsed.unseal_keys_b64
+  when: vault_init_parsed.unseal_keys_b64 is defined
+
+- name: Print Root token
+  debug:
+    var: vault_init_parsed.root_token
+  when: vault_init_parsed.root_token is defined

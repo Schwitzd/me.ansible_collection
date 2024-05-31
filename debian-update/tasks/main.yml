@@ -1,0 +1,10 @@
+---
+- name: Update apt repository cache
+  apt:
+    update_cache: yes
+
+- name: Upgrade all packages
+  apt:
+    upgrade: dist
+  notify:
+    - Clean apt cache

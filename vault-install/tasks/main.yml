@@ -1,0 +1,50 @@
+---
+- name: Add HashiCorp GPG key on Debian
+  get_url:
+    url: https://apt.releases.hashicorp.com/gpg
+    dest: /etc/apt/trusted.gpg.d/hashicorp.asc
+  when: ansible_distribution == 'debian'
+
+- name: Add HashiCorp APT repository on Debian
+  apt_repository:
+    repo: "deb [arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+    state: present
+  notify: Update APT cache
+  when: ansible_distribution == 'debian'
+
+- name: Install HashiCorp Vault on Debian
+  apt:
+    name: vault
+    state: present
+  when: ansible_distribution == 'debian'
+
+- name: Install HashiCorp Vault on Arch Linux
+  pacman:
+    name: vault
+    state: present
+    update_cache: true
+    executable: yay
+  when: ansible_distribution == 'Archlinux'
+
+- name: Create Vault config folder
+  file:
+    path: /var/lib/vault/data
+    state: directory
+    mode: '0770'
+    owner: vault
+    group: vault
+
+- name: Create Vault config
+  template:
+    src: vault.hcl.j2
+    dest: "{{ vault_config_path }}"
+
+- name: Create Systemd service
+  template:
+    src: vault.service.j2
+    dest: /etc/systemd/system/vault.service
+  notify: 
+    - Reload Systemd services
+    - Enable Vault service
+    - Start Vault service
+  when: ansible_distribution == 'debian'

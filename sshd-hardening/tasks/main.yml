@@ -1,0 +1,16 @@
+---
+- name: Check if OpenSSH server is installed
+  stat:
+    path: /etc/ssh/sshd_config
+  register: sshd_config_exists
+
+- fail:
+    msg: "OpenSSH server is not installed. Exiting the role."
+  when: not sshd_config_exists.stat.exists
+
+- name: Configure SSHd Configuration File
+  template:
+    src: sshd_config.j2
+    dest: "{{ sshd_config_path }}"
+  notify:
+    - restart sshd

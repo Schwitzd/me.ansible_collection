@@ -1,0 +1,9 @@
+---
+# Vault hostname
+vault_hostname: "localhost"
+
+# Vault port
+vault_port: 8200
+
+# Vault GUI
+vault_ui: true
