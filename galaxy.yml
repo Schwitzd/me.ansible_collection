@@ -1,10 +1,10 @@
 ---
 authors:
   - Daniel Schwitzgebel
-license_file: LICENSE
-name: collection
 namespace: schwitzd
+name: collection
 description: My personal Ansible collection
 readme: README.md
 repository: https://github.com/Schwitzd/me.ansible_collection
-version: "1.0.0"
+license_file: LICENSE
+version: "1.1.1"
