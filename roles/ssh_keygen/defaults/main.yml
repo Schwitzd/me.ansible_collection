@@ -1,5 +1,5 @@
 # SSH key name
-ssh_key_name: "id_ed25519"
+ssh_keygen_name: "id_ed25519"
 
 # Encrypt private key
-ssh_keygen_encrypt_private_key: true
+ssh_keygen_encrypt_privatekey: true
