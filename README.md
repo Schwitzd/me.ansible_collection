@@ -13,7 +13,7 @@ collections:
     type: git
     version: main
 ```
-`
+
 Then install it using:
 
 ```sh
