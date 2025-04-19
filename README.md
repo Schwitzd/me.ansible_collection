@@ -2,6 +2,26 @@
 
 Welcome to my personal Ansible roles repository, it contains a collection of Ansible roles that I have created and maintained for various automation tasks.
 
+## Installation
+
+To install this collection via `requirements.yaml`, create a file like this:
+
+```yaml
+---
+collections:
+  - name: https://github.com/Schwitzd/me.ansible_collection.git
+    type: git
+    version: main
+```
+`
+Then install it using:
+
+```sh
+ansible-galaxy collection install -r requirements.yaml
+```
+
+To keep the collection update add the parameter `-force` in the above command.
+
 ## How to Use
 
 ### SSH keygen
