@@ -1,0 +1,16 @@
+---
+sshd_hardening_config_path: /etc/ssh/sshd_config.d/sshd.conf
+
+sshd_hardening_port: 22
+sshd_hardening_permit_root_login: "no"
+sshd_hardening_permit_empty_passwords: "no"
+sshd_hardening_password_authentication: "no"
+sshd_hardening_protocol: 2
+
+sshd_hardening_login_grace_time: 60
+sshd_hardening_client_alive_interval: 120
+sshd_hardening_max_auth_tries: 3
+sshd_hardening_x11_forwarding: "no"
+
+sshd_hardening_allowed_users: []
+sshd_hardening_sftp_enabled: false

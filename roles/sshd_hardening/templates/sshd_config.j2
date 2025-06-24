@@ -1,16 +1,19 @@
-# SSHd Configuration
-Port {{ ssh_port }}
-PermitRootLogin {{ ssh_permit_root_login }}
-PermitEmptyPasswords {{ ssh_permit_empty_passwords }}
-Protocol {{ ssh_protocol }}
-ClientAliveInterval {{ client_alive_interval }}
-X11Forwarding {{ x11_forwarding }}
-MaxAuthTries {{ max_auth_tries }}
-PasswordAuthentication {{ password_authentication }}
-AllowUsers {{ ssh_allowed_users }}
-LoginGraceTime {{ login_grace_time }}
+# SSH Hardened Configuration
 
-{% if sftp_enabled %}
-# sFTP
+Port {{ sshd_hardening_port }}
+Protocol {{ sshd_hardening_protocol }}
+PermitRootLogin {{ sshd_hardening_permit_root_login }}
+PermitEmptyPasswords {{ sshd_hardening_permit_empty_passwords }}
+PasswordAuthentication {{ sshd_hardening_password_authentication }}
+LoginGraceTime {{ sshd_hardening_login_grace_time }}
+ClientAliveInterval {{ sshd_hardening_client_alive_interval }}
+MaxAuthTries {{ sshd_hardening_max_auth_tries }}
+X11Forwarding {{ sshd_hardening_x11_forwarding }}
+
+{% if sshd_hardening_allowed_users %}
+AllowUsers {{ sshd_hardening_allowed_users | join(' ') }}
+{% endif %}
+
+{% if sshd_hardening_sftp_enabled %}
 Subsystem sftp /usr/lib/openssh/sftp-server
 {% endif %}
