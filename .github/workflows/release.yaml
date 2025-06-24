@@ -26,3 +26,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: semantic-release publish
+
+      - name: Update galaxy.yml version
+        run: |
+          version=$(semantic-release print-version)
+          sed -i "s/^version: \".*\"/version: \"${version}\"/" galaxy.yml
+
+      - name: Commit updated galaxy.yml
+        uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: "chore(release): update galaxy.yml version"
+          file_pattern: galaxy.yml
