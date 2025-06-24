@@ -8,14 +8,13 @@ branch = "main"
 upload_to_pypi = false
 upload_to_release = true
 
-[tool.semantic_release.changelog.exclude_commit_patterns]
-# Recommended patterns for conventional commits parser that is scope aware
+[tool.semantic_release.changelog]
 exclude_commit_patterns = [
-    '''chore(?:\([^)]*?\))?: .+''',
-    '''ci(?:\([^)]*?\))?: .+''',
-    '''refactor(?:\([^)]*?\))?: .+''',
-    '''style(?:\([^)]*?\))?: .+''',
-    '''test(?:\([^)]*?\))?: .+''',
-    '''build\((?!deps\): .+)''',
-    '''Initial [Cc]ommit.*''',
+  "chore(?:\\([^)]*?\\))?: .+",
+  "ci(?:\\([^)]*?\\))?: .+",
+  "refactor(?:\\([^)]*?\\))?: .+",
+  "style(?:\\([^)]*?\\))?: .+",
+  "test(?:\\([^)]*?\\))?: .+",
+  "build\\((?!deps\\): .+)",
+  "Initial [Cc]ommit.*"
 ]
