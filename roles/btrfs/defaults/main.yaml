@@ -1,0 +1,5 @@
+---
+btrfs_mount: "/mnt/storage"
+btrfs_opts: "defaults,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,autodefrag"
+btrfs_do_mount: true
+btrfs_persist_fstab: true

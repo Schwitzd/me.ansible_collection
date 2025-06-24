@@ -1,0 +1,89 @@
+---
+- name: Ensure required variable 'btrfs_device' is defined
+  ansible.builtin.fail:
+    msg: "You must define 'btrfs_device' to use this role."
+  when: btrfs_device is not defined
+
+- name: Set partition device path based on device type
+  ansible.builtin.set_fact:
+    btrfs_partition: >-
+      {{ btrfs_device }}{{ 'p1' if btrfs_device | regex_search('nvme|mmcblk') else '1' }}
+
+- name: Check if partition already exists
+  ansible.builtin.stat:
+    path: "{{ btrfs_partition }}"
+  register: part_exists
+  tags: storage
+
+- name: Fail if partition already exists (to prevent overwriting)
+  ansible.builtin.fail:
+    msg: "Partition {{ btrfs_partition }} already exists — aborting to prevent data loss."
+  when: part_exists.stat.exists
+  tags: storage
+
+- name: Ensure required packages are installed
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - btrfs-progs
+    - jq
+  tags: storage
+
+- name: Create Btrfs partition
+  community.general.parted:
+    device: "{{ btrfs_device }}"
+    number: 1
+    part_start: 1MiB
+    part_end: 100%
+    fs_type: btrfs
+    state: present
+  tags: storage
+
+- name: Format partition as Btrfs
+  community.general.filesystem:
+    fstype: btrfs
+    dev: "{{ btrfs_partition }}"
+    force: true
+  tags: storage
+
+- name: Retrieve UUID of Btrfs partition
+  ansible.builtin.command: "blkid -s UUID -o value {{ btrfs_partition }}"
+  register: btrfs_uuid
+  changed_when: false
+  when: btrfs_do_mount or btrfs_persist_fstab
+  tags: storage
+
+- name: Fail if UUID not found
+  ansible.builtin.fail:
+    msg: "Failed to retrieve UUID for {{ btrfs_partition }}"
+  when:
+    - btrfs_do_mount or btrfs_persist_fstab
+    - btrfs_uuid.stdout == ""
+  tags: storage
+
+- name: Ensure mount point exists
+  ansible.builtin.file:
+    path: "{{ btrfs_mount }}"
+    state: directory
+    mode: '0755'
+  when: btrfs_do_mount or btrfs_persist_fstab
+  tags: storage
+
+- name: Mount Btrfs partition
+  ansible.posix.mount:
+    path: "{{ btrfs_mount }}"
+    src: "UUID={{ btrfs_uuid.stdout }}"
+    fstype: btrfs
+    opts: "{{ btrfs_opts }}"
+    state: mounted
+  when: btrfs_do_mount
+  tags: storage
+
+- name: Persist mount in fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    line: "UUID={{ btrfs_uuid.stdout }} {{ btrfs_mount }} btrfs {{ btrfs_opts }} 0 0"
+    state: present
+  when: btrfs_persist_fstab
+  tags: storage
