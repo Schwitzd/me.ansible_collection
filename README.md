@@ -22,28 +22,8 @@ ansible-galaxy collection install -r requirements.yaml
 
 To keep the collection update add the parameter `-force` in the above command.
 
-## How to Use
+## Roles
 
-### SSH keygen
-
-```yaml
----
-- name: Duck SSH key provision
-  hosts: localhost
-  gather_facts: true
-  collections:
-    - schwitzd.collection
-
-  roles:
-    - role: ssh_keygen
-      vars:
-        ssh_keygen_user: k3s
-        ssh_keygen_server: <hostname>
-        ssh_keygen_name: <hostname>_ed25519
-```
-
-Run the following command, the ssh key pair will be created on the localhost, only only the public key will be added on the `authorized_keys` of the remote system.
-
-```sh
-ansible-playbook duck-ssh.yaml -u k3s -c paramiko --ask-pass
-```
+- **ssh_keygen**: Generates SSH key pairs locally and deploys the public key to remote systems for passwordless login.
+- **sshd_hardening**: Applies a hardened and secure configuration to the OpenSSH daemon based on best practices and linting rules.
+- **btrfs**: Partitions a full disk, formats it as Btrfs, optionally mounts it, and persists the configuration in /etc/fstab
