@@ -1,0 +1,50 @@
+- name: Fail if target release is not supported
+  ansible.builtin.fail:
+    msg: "Unsupported release '{{ debian_upgrade_target_release }}'. Must be one of: {{ debian_upgrade_valid_releases | join(', ') }}"
+  when: debian_upgrade_target_release not in debian_upgrade_valid_releases
+
+- name: Get current codename
+  ansible.builtin.command: lsb_release -c -s
+  register: debian_upgrade_current_release
+  changed_when: false
+
+- name: Debug current codename
+  ansible.builtin.debug:
+    msg: "Current codename: {{ debian_upgrade_current_release.stdout }}"
+
+- name: Replace codename in /etc/apt/sources.list
+  ansible.builtin.replace:
+    path: /etc/apt/sources.list
+    regexp: '\b{{ debian_upgrade_current_release.stdout }}\b'
+    replace: '{{ debian_upgrade_target_release }}'
+  notify: apt update
+
+- name: Stat /etc/apt/sources.list.d/raspi.list
+  ansible.builtin.stat:
+    path: /etc/apt/sources.list.d/raspi.list
+  register: debian_upgrade_raspi_list
+
+- name: Replace codename in raspi.list if present
+  ansible.builtin.replace:
+    path: /etc/apt/sources.list.d/raspi.list
+    regexp: '\b{{ debian_upgrade_current_release.stdout }}\b'
+    replace: '{{ debian_upgrade_target_release }}'
+  when: debian_upgrade_raspi_list.stat.exists
+  notify: apt update
+
+- name: Perform full upgrade
+  ansible.builtin.apt:
+    upgrade: full
+    update_cache: true
+    force: true
+    autoremove: true
+
+- name: Check if a reboot is required
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+    get_checksum: false
+  register: debian_upgrade_reboot_required
+
+- name: Reboot the server if required
+  ansible.builtin.reboot:
+  when: debian_upgrade_reboot_required.stat.exists
