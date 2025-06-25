@@ -1,33 +1,14 @@
 ---
 - name: Ensure required variable 'btrfs_device' is defined
-  ansible.builtin.fail:
-    msg: "You must define 'btrfs_device' to use this role."
-  when: btrfs_device is not defined
-
-- name: Set partition device path based on device type
-  ansible.builtin.set_fact:
-    btrfs_partition: >-
-      {{ btrfs_device }}{{ 'p1' if btrfs_device | regex_search('nvme|mmcblk') else '1' }}
-
-- name: Check if partition already exists
-  ansible.builtin.stat:
-    path: "{{ btrfs_partition }}"
-  register: part_exists
-  tags: storage
-
-- name: Fail if partition already exists (to prevent overwriting)
-  ansible.builtin.fail:
-    msg: "Partition {{ btrfs_partition }} already exists — aborting to prevent data loss."
-  when: part_exists.stat.exists
+  when:
+    - part_exists.stat.exists
+    - btrfs_partition_overwrite | bool
   tags: storage
 
 - name: Ensure required packages are installed
   ansible.builtin.package:
-    name: "{{ item }}"
+    name: ["btrfs-progs"]
     state: present
-  loop:
-    - btrfs-progs
-    - jq
   tags: storage
 
 - name: Create Btrfs partition

@@ -12,12 +12,13 @@ This Ansible role provisions a Btrfs filesystem on a given block device, optiona
 
 ## Optional Variables
 
-| Name                  | Description                                  | Default                                                                        |
-|-----------------------|----------------------------------------------|--------------------------------------------------------------------------------|
-| `btrfs_mount`         | Mount point                                  | `/mnt/storage`                                                                 |
-| `btrfs_opts`          | Mount options                                | `defaults,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,autodefrag` |
-| `btrfs_do_mount`      | Whether to mount the partition               | `true`                                                                         |
-| `btrfs_persist_fstab` | Whether to write to `/etc/fstab`             | `true`                                                                         |
+| Name                        | Description                                        | Default                                                                        |
+|-----------------------------|----------------------------------------------------|--------------------------------------------------------------------------------|
+| `btrfs_mount`               | Mount point                                        | `/mnt/storage`                                                                 |
+| `btrfs_opts`                | Mount options                                      | `defaults,noatime,compress=zstd:3,ssd,discard=async,space_cache=v2,autodefrag` |
+| `btrfs_do_mount`            | Whether to mount the partition                     | `true`                                                                         |
+| `btrfs_persist_fstab`       | Whether to write to `/etc/fstab`                   | `true`                                                                         |
+| `btrfs_partition_overwrite` | Whether to wipe the partition if it already exists | `false`                                                                        |
 
 ## Example Usage
 
