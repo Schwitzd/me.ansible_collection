@@ -1,0 +1,3 @@
+---
+ # Directory to store dearmored apt repository GPG keys
+apt_3rdparty_repo_keyring_dir: "/etc/apt/keyrings"

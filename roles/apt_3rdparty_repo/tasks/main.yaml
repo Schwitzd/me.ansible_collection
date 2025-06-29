@@ -1,0 +1,12 @@
+---
+- name: Ensure keyring directory exists
+  ansible.builtin.file:
+    path: "{{ apt_3rdparty_repo_keyring_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Add all 3rd party apt repositories
+  ansible.builtin.include_tasks: add_one_repo.yml
+  loop: "{{ repos }}"
+  loop_control:
+    loop_var: repo

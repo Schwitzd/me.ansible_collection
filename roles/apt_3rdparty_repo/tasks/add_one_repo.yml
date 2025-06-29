@@ -1,0 +1,24 @@
+---
+- name: Download the signing key for {{ repo.name | default(repo.key_file) }}
+  ansible.builtin.get_url:
+    url: "{{ repo.key_url }}"
+    dest: "/tmp/{{ repo.key_file }}"
+    mode: '0644'
+
+- name: Dearmor the key file for {{ repo.name | default(repo.key_file) }}
+  ansible.builtin.shell: >
+    gpg --batch --dearmor -o {{ apt_3rdparty_repo_keyring_dir }}/{{ repo.key_file }} /tmp/{{ repo.key_file }}
+  args:
+    creates: "{{ apt_3rdparty_repo_keyring_dir }}/{{ repo.key_file }}"
+
+- name: Add APT repository for {{ repo.name | default(repo.key_file) }}
+  ansible.builtin.apt_repository:
+    repo: "{{ repo.repo }}"
+    filename: "{{ repo.filename }}"
+    state: present
+    update_cache: true
+
+- name: Remove temporary key file for {{ repo.name | default(repo.key_file) }}
+  ansible.builtin.file:
+    path: "/tmp/{{ repo.key_file }}"
+    state: absent
