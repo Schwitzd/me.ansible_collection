@@ -32,7 +32,6 @@
   ansible.posix.mount:
     path: "{{ btrfs_mount }}"
     state: unmounted
-    force: true
   when:
     - part_exists.stat.exists
     - btrfs_partition_overwrite | bool
