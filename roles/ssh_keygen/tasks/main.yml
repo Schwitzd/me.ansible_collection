@@ -12,6 +12,14 @@
     path: "/home/{{ ansible_user_id }}/.ssh/{{ ssh_keygen_name }}"
   register: ssh_keygen_present
 
+- name: Remove old SSH known_hosts entry for remote server
+  ansible.builtin.known_hosts:
+    path: "/home/{{ ansible_user_id }}/.ssh/known_hosts"
+    name: "{{ ssh_keygen_server }}"
+    state: absent
+  when: ssh_keygen_present.stat.exists
+  delegate_to: localhost
+
 - name: Generate random passphrase if encryption is enabled
   ansible.builtin.set_fact:
     ssh_keygen_passphrase: "{{ lookup('password', '/dev/null length=32') }}"
