@@ -5,6 +5,19 @@
       - systemd_timer_name is defined
     fail_msg: "Both systemd_timer_command and systemd_timer_name must be set."
 
+- name: Assert systemd_timer_name uses only valid systemd unit characters and is not a path
+  ansible.builtin.assert:
+    that:
+      # Only allow letters, numbers, _, -, ., and @; no spaces or slashes
+      - systemd_timer_name is match('^[A-Za-z0-9_.@-]+$')
+      # Disallow starting with '.' or '-'
+      - systemd_timer_name is not match('^[.-]')
+      # Disallow any '/' (paths)
+      - systemd_timer_name is not search('/')
+    fail_msg: >
+      systemd_timer_name must only contain letters, numbers, '_', '-', '.', or '@',
+      must not start with '.' or '-', must not include slashes or spaces, and cannot be a path.
+
 - name: Deploy systemd service unit for {{ systemd_timer_name }}
   ansible.builtin.template:
     src: service.j2
