@@ -3,16 +3,16 @@ Description=Run {{ systemd_timer_name }} via systemd timer
 
 [Service]
 Type=oneshot
-{% if systemd_timer_exec_start_pre is defined %}
+{% if systemd_timer_exec_start_pre is defined and systemd_timer_exec_start_pre %}
 ExecStartPre={{ systemd_timer_exec_start_pre }}
 {% endif %}
 ExecStart={{ systemd_timer_command }}
-{% if systemd_timer_exec_start_post is defined %}
+{% if systemd_timer_exec_start_post is defined and systemd_timer_exec_start_post %}
 ExecStartPost={{ systemd_timer_exec_start_post }}
 {% endif %}
-{% if systemd_timer_user is defined %}
+{% if systemd_timer_user is defined and systemd_timer_user %}
 User={{ systemd_timer_user }}
 {% endif %}
-{% if systemd_timer_group is defined %}
+{% if systemd_timer_group is defined and systemd_timer_group %}
 Group={{ systemd_timer_group }}
 {% endif %}
