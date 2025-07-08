@@ -4,7 +4,9 @@ This Ansible role applies a hardened configuration to the OpenSSH daemon based o
 
 > ⚠️ **Note**: This role assumes the OpenSSH server is already installed. It does **not** install or manage the `sshd` package itself.
 
-## Optional Variables
+## Role variables
+
+### Optionals
 
 | Name                                     | Description                                        | Default                                     |
 |------------------------------------------|----------------------------------------------------|---------------------------------------------|
@@ -21,12 +23,12 @@ This Ansible role applies a hardened configuration to the OpenSSH daemon based o
 | `sshd_hardening_allowed_users`           | List of explicitly allowed SSH users (empty = all) | `[]`                                        |
 | `sshd_hardening_sftp_enabled`            | Whether to enable the sFTP subsystem               | `false`                                     |
 
-## Example Usage
+## Example usage
 
 ```yaml
 - hosts: all
   roles:
-    - role: sshd_hardening
+    - role: schwitzd.collection.sshd_hardening
       vars:
         sshd_hardening_allowed_users:
           - "admin"
