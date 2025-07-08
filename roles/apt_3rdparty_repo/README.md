@@ -2,7 +2,7 @@
 
 This role adds one or more third-party APT repositories and securely installs their GPG keys on Debian-based systems.
 
-## Role Variables
+## Role variables
 
 ### Required
 
@@ -24,12 +24,12 @@ Each item in `apt_3rdparty_repos` must contain:
 |----------------------------------|-----------------------------------------|-----------------------|
 | `apt_3rdparty_repo_keyring_dir`  | Directory to store dearmored GPG keys   | `/etc/apt/keyrings`   |
 
-## Example Usage
+## Example usage
 
 ```yaml
 - hosts: all
   roles:
-    - role: apt_3rdparty_repo
+    - role: schwitzd.collection.apt_3rdparty_repo
       vars:
         repos:
           - name: "helm"

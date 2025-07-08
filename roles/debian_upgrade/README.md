@@ -2,7 +2,7 @@
 
 This role performs a Debian or Raspberry Pi OS (Raspbian) release upgrade.
 
-## Role Variables
+## Role variables
 
 ### Required
 
@@ -10,13 +10,12 @@ This role performs a Debian or Raspberry Pi OS (Raspbian) release upgrade.
 |-----------------------------------|----------------------------|---------------|
 | `debian_upgrade_target_release`   | Target codename to upgrade | `bookworm`    |
 
-## Example Playbook
+## Example usage
 
 ```yaml
-- name: Upgrade Raspberry Pi OS to Bookworm
-  hosts: raspberrypi
-  become: true
+- hosts: all
   roles:
-    - role: debian_upgrade
+    - role: schwitzd.collection.debian_upgrade
       vars:
         debian_upgrade_target_release: bookworm
+```

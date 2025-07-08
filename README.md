@@ -29,3 +29,4 @@ To keep the collection update add the parameter `-force` in the above command.
 - **btrfs**: Partitions a full disk, formats it as Btrfs, optionally mounts it, and persists the configuration in `/etc/fstab`.
 - **debian_upgrade**: Perform a full release upgrade on Debian or Raspberry Pi OS.
 - **apt_3rdparty_repo**: Adds one or more third-party APT repositories and securely installs their GPG keys on Debian-based systems.
+- **systemd_timer**: Schedules and manages a systemd timer and service unit.

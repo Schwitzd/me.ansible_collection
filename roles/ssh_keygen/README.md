@@ -2,14 +2,9 @@
 
 ```yaml
 ---
-- name: Duck SSH key provision
-  hosts: localhost
-  gather_facts: true
-  collections:
-    - schwitzd.collection
-
+- hosts: localhost
   roles:
-    - role: ssh_keygen
+    - role: schwitzd.collection.ssh_keygen
       vars:
         ssh_keygen_user: k3s
         ssh_keygen_server: <hostname>

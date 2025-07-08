@@ -4,13 +4,15 @@ This Ansible role provisions a Btrfs filesystem on a given block device, optiona
 
 > ⚠️ **Warning**: This role will create a single primary partition that spans the **entire disk** specified by `btrfs_device`. Any existing data or partitions on the disk will be destroyed.
 
-## Required Variables
+## Role variables
+
+### Required
 
 | Name           | Description                                                                              |
 |----------------|------------------------------------------------------------------------------------------|
 | `btrfs_device` | The target block device (e.g. `/dev/sda`). This will be fully partitioned and formatted. |
 
-## Optional Variables
+### Optional
 
 | Name                        | Description                                        | Default                                                                        |
 |-----------------------------|----------------------------------------------------|--------------------------------------------------------------------------------|
@@ -20,12 +22,12 @@ This Ansible role provisions a Btrfs filesystem on a given block device, optiona
 | `btrfs_persist_fstab`       | Whether to write to `/etc/fstab`                   | `true`                                                                         |
 | `btrfs_partition_overwrite` | Whether to wipe the partition if it already exists | `false`                                                                        |
 
-## Example Usage
+## Example usage
 
 ```yaml
 - hosts: all
   roles:
-    - role: btrfs
+    - role: schwitzd.collection.btrfs
       vars:
         btrfs_device: "/dev/sda"
         btrfs_persist_fstab: false
