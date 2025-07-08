@@ -1,0 +1,24 @@
+- name: Assert required variables are set
+  ansible.builtin.assert:
+    that:
+      - systemd_timer_command is defined
+      - systemd_timer_name is defined
+    fail_msg: "Both systemd_timer_command and systemd_timer_name must be set."
+
+- name: Deploy systemd service unit for {{ systemd_timer_name }}
+  ansible.builtin.template:
+    src: service.j2
+    dest: "/etc/systemd/system/{{ systemd_timer_name }}.service"
+    owner: "{{ systemd_timer_user | default('root') }}"
+    group: "{{ systemd_timer_group | default(systemd_timer_user | default('root')) }}"
+    mode: '0644'
+  notify: Reload and restart systemd timer
+
+- name: Deploy systemd timer unit for {{ systemd_timer_name }}
+  ansible.builtin.template:
+    src: timer.j2
+    dest: "/etc/systemd/system/{{ systemd_timer_name }}.timer"
+    owner: "{{ systemd_timer_user | default('root') }}"
+    group: "{{ systemd_timer_group | default(systemd_timer_user | default('root')) }}"
+    mode: '0644'
+  notify: Reload and restart systemd timer

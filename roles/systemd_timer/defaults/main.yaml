@@ -1,0 +1,24 @@
+# Name for the systemd timer/service unit
+#systemd_timer_name:
+
+# Command to execute in the systemd service unit
+#systemd_timer_command:
+
+# Timer scheduling options (all optional; see systemd.time for details)
+systemd_timer_on_calendar:
+systemd_timer_on_active_sec:
+systemd_timer_on_boot_sec:
+systemd_timer_on_startup_sec:
+systemd_timer_on_unit_active_sec:
+systemd_timer_on_unit_inactive_sec:
+
+# If true, missed OnCalendar events run at next boot; if false, missed runs are skipped
+systemd_timer_persistent: false
+
+# User/group to run the service as (default: root)
+systemd_timer_user:
+systemd_timer_group:
+
+# Optional commands to run before (ExecStartPre) or after (ExecStartPost) the main command
+systemd_timer_exec_start_pre:
+systemd_timer_exec_start_post:
