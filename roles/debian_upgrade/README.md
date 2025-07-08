@@ -6,9 +6,9 @@ This role performs a Debian or Raspberry Pi OS (Raspbian) release upgrade.
 
 ### Required
 
-| Variable                          | Description                | Default       |
-|-----------------------------------|----------------------------|---------------|
-| `debian_upgrade_target_release`   | Target codename to upgrade | `bookworm`    |
+| Variable                        | Description                | Default    |
+|---------------------------------|----------------------------|------------|
+| `debian_upgrade_target_release` | Target codename to upgrade | `bookworm` |
 
 ## Example usage
 

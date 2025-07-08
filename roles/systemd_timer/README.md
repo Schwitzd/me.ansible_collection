@@ -21,7 +21,7 @@ This role manages a systemd timer/service pair with full support for all major s
 | `systemd_timer_on_startup_sec`       | Time after systemd manager startup to run (useful in containers or user units).       | unset   |
 | `systemd_timer_on_unit_active_sec`   | Time after associated service last ran successfully.                                  | unset   |
 | `systemd_timer_on_unit_inactive_sec` | Time after associated service last finished (any state).                              | unset   |
-| `systemd_timer_persistent`           | If `true`, missed `OnCalendar` events while the system was off will be run immediately at next boot; if `false`, missed runs are skipped. Only applies with `OnCalendar`.                                                                                   | false   |
+| `systemd_timer_persistent`           | If `true`, missed `OnCalendar` events while the system was off will be run immediately at next boot; if `false`, missed runs are skipped. Only applies with `OnCalendar`. | false   |
 | `systemd_timer_user`                 | Run the service as this user.                                                         | root    |
 | `systemd_timer_group`                | Run the service as this group.                                                        | root    |
 | `systemd_timer_exec_start_pre`       | Command (string) to run as `ExecStartPre` before the main command.                    | unset   |
@@ -33,7 +33,7 @@ This role manages a systemd timer/service pair with full support for all major s
 - hosts: all
   become: true
   roles:
-    - role: systemd_timer
+    - role: schwitzd.collection.systemd_timer
       vars:
         systemd_timer_name: "backup-job"
         systemd_timer_command: "/usr/local/bin/backup.sh"

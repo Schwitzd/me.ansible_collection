@@ -6,9 +6,9 @@ This role adds one or more third-party APT repositories and securely installs th
 
 ### Required
 
-| Variable             | Description                                                                                    | Default     |
-|----------------------|------------------------------------------------------------------------------------------------|-------------|
-| `apt_3rdparty_repos` | **List of dicts**: each dict must define `repo`, `filename`, `key_url`, `key_file` (see below) | _required_  |
+| Variable             | Description                                                                                    | Default    |
+|----------------------|------------------------------------------------------------------------------------------------|------------|
+| `apt_3rdparty_repos` | **List of dicts**: each dict must define `repo`, `filename`, `key_url`, `key_file` (see below) | _required_ |
 
 Each item in `apt_3rdparty_repos` must contain:
 
@@ -20,9 +20,9 @@ Each item in `apt_3rdparty_repos` must contain:
 
 ### Optional
 
-| Variable                         | Description                             | Default               |
-|----------------------------------|-----------------------------------------|-----------------------|
-| `apt_3rdparty_repo_keyring_dir`  | Directory to store dearmored GPG keys   | `/etc/apt/keyrings`   |
+| Variable                        | Description                           | Default             |
+|---------------------------------|---------------------------------------|---------------------|
+| `apt_3rdparty_repo_keyring_dir` | Directory to store dearmored GPG keys | `/etc/apt/keyrings` |
 
 ## Example usage
 
