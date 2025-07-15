@@ -34,4 +34,6 @@
     owner: "{{ systemd_timer_user | default('root') }}"
     group: "{{ systemd_timer_group | default(systemd_timer_user | default('root')) }}"
     mode: '0644'
-  notify: Reload and restart systemd timer
+  notify:
+    - Reload and restart systemd timer
+    - Enable and start systemd timer
