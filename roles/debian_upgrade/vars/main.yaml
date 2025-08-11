@@ -1,1 +1,6 @@
 ---
+debian_upgrade_valid_releases:
+  - bookworm
+  - bullseye
+  - trixie
+  - sid
