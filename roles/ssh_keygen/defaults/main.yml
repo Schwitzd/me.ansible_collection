@@ -3,3 +3,6 @@ ssh_keygen_name: "id_ed25519"
 
 # Encrypt private key
 ssh_keygen_encrypt_privatekey: true
+
+# Length of the randomly generated passphrase
+ssh_keygen_passphrase_length: 32

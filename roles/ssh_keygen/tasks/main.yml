@@ -22,7 +22,7 @@
 
 - name: Generate random passphrase if encryption is enabled
   ansible.builtin.set_fact:
-    ssh_keygen_passphrase: "{{ lookup('password', '/dev/null length=32') }}"
+    ssh_keygen_passphrase: "{{ lookup('password', '/dev/null length=' + ssh_keygen_passphrase_length | string) }}"
   when: ssh_keygen_encrypt_privatekey
 
 - name: Generate SSH key pair if it does not exist
