@@ -2,6 +2,7 @@
 Description=Timer for {{ systemd_timer_name }}
 
 [Timer]
+Unit={{ systemd_timer_name }}{% if systemd_timer_instance %}@{{ systemd_timer_instance }}{% endif %}.service
 {% if systemd_timer_on_calendar is defined and systemd_timer_on_calendar %}
 OnCalendar={{ systemd_timer_on_calendar }}
 {% endif %}

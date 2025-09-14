@@ -1,9 +1,10 @@
 - name: Reload and restart systemd timer
   ansible.builtin.systemd:
+    name: "{{ systemd_timer_name }}{% if systemd_timer_instance | default('') %}@{{ systemd_timer_instance }}{% endif %}.timer"
     daemon_reload: true
 
 - name: Enable and start systemd timer
   ansible.builtin.systemd:
-    name: "{{ systemd_timer_name }}.timer"
+    name: "{{ systemd_timer_name }}{% if systemd_timer_instance | default('') %}@{{ systemd_timer_instance }}{% endif %}.timer"
     enabled: true
     state: started

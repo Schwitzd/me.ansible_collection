@@ -1,8 +1,11 @@
 # Name for the systemd timer/service unit
-#systemd_timer_name:
+# systemd_timer_name:
 
 # Command to execute in the systemd service unit
-#systemd_timer_command:
+# systemd_timer_command:
+
+# Optional instance name for templated services (e.g. "backup@daily"); leave empty for non-templated
+systemd_timer_instance: ""
 
 # Timer scheduling options (all optional; see systemd.time for details)
 systemd_timer_on_calendar: ""
