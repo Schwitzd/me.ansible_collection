@@ -1,3 +1,6 @@
 ---
 # Define the desired target release
 debian_upgrade_target_release: "bookworm"
+
+# Automatically reboot if required after upgrade
+debian_upgrade_allow_reboot: true

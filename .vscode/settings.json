@@ -1,3 +1,3 @@
 {
-    "ansible.python.interpreterPath": "/home/daniel/Github/ansible-roles/venv/bin/python"
+    "ansible.python.interpreterPath": "/home/daniel/Github/me.ansible_collection/venv/bin/python"
 }

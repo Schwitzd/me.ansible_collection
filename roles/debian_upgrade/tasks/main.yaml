@@ -45,6 +45,8 @@
     get_checksum: false
   register: debian_upgrade_reboot_required
 
-- name: Reboot the server if required
+- name: Reboot the server if required and allowed
   ansible.builtin.reboot:
-  when: debian_upgrade_reboot_required.stat.exists
+  when:
+    - debian_upgrade_reboot_required.stat.exists
+    - debian_upgrade_allow_reboot | default(true) | bool
