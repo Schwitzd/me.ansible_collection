@@ -31,7 +31,6 @@
     mode: "0755"
   become: true
 
-
 - name: Ensure Python venv tooling is present
   ansible.builtin.apt:
     name: "{{ docker_swarm_bootstrap_python_venv_package }}"
