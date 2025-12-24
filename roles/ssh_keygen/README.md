@@ -2,9 +2,6 @@
 
 This Ansible role creates an Ed25519 SSH key pair on the control node (the machine running Ansible), ensures secure permissions, optionally encrypts the private key with a random passphrase, and copies the public key to a remote host’s `authorized_keys`.
 
-> [!NOTE]
-> The local user that runs the play (`ansible_user_id`) is the account whose `~/.ssh` directory is used.
-
 ## Role Variables
 
 ### Required
