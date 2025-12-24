@@ -30,3 +30,4 @@ To keep the collection update add the parameter `-force` in the above command.
 - **debian_upgrade**: Perform a full release upgrade on Debian or Raspberry Pi OS.
 - **apt_3rdparty_repo**: Adds one or more third-party APT repositories and securely installs their GPG keys on Debian-based systems.
 - **systemd_timer**: Schedules and manages a systemd timer and service unit.
+- **docker_swarm_bootstrap**: Bootstraps a single-node Docker Swarm manager with dual-stack defaults (Docker preinstalled).

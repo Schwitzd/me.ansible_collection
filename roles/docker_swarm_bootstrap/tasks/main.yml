@@ -1,0 +1,77 @@
+- name: Check Docker is installed
+  ansible.builtin.command: docker --version
+  register: docker_swarm_bootstrap_docker_version
+  changed_when: false
+  become: true
+
+- name: Fail if Docker is missing
+  ansible.builtin.assert:
+    that:
+      - docker_swarm_bootstrap_docker_version.rc == 0
+    fail_msg: "Docker is not installed or not on PATH. Install Docker first (e.g., via geerlingguy.docker)."
+
+- name: Check bootstrap user exists
+  ansible.builtin.command: "getent passwd {{ docker_swarm_bootstrap_user }}"
+  register: docker_swarm_bootstrap_user_check
+  changed_when: false
+  become: true
+
+- name: Fail if bootstrap user is missing
+  ansible.builtin.assert:
+    that:
+      - docker_swarm_bootstrap_user_check.rc == 0
+    fail_msg: "Bootstrap user '{{ docker_swarm_bootstrap_user }}' does not exist on the target host. Create it before running this role."
+
+- name: Ensure base directory exists
+  ansible.builtin.file:
+    path: "{{ docker_swarm_bootstrap_base_path }}"
+    state: directory
+    owner: "{{ docker_swarm_bootstrap_user }}"
+    group: "{{ docker_swarm_bootstrap_group }}"
+    mode: "0755"
+  become: true
+
+
+- name: Ensure Python venv tooling is present
+  ansible.builtin.apt:
+    name: "{{ docker_swarm_bootstrap_python_venv_package }}"
+    state: present
+    update_cache: true
+  become: true
+
+- name: Ensure venv exists
+  ansible.builtin.command: "python3 -m venv {{ docker_swarm_bootstrap_venv_path }}"
+  args:
+    creates: "{{ docker_swarm_bootstrap_venv_path }}/bin/activate"
+  become: true
+
+- name: Ensure venv ownership for bootstrap user
+  ansible.builtin.file:
+    path: "{{ docker_swarm_bootstrap_venv_path }}"
+    state: directory
+    owner: "{{ docker_swarm_bootstrap_user }}"
+    group: "{{ docker_swarm_bootstrap_group }}"
+    recurse: true
+  become: true
+
+- name: Ensure Docker SDK is present in venv
+  ansible.builtin.pip:
+    name: "docker"
+    state: present
+    executable: "{{ docker_swarm_bootstrap_venv_path }}/bin/pip"
+  become: true
+  become_user: "{{ docker_swarm_bootstrap_user }}"
+
+- name: Point Ansible to venv interpreter
+  ansible.builtin.set_fact:
+    ansible_python_interpreter: "{{ docker_swarm_bootstrap_venv_path }}/bin/python"
+
+- name: Reconnect so new interpreter takes effect
+  ansible.builtin.meta: reset_connection
+
+- name: Initialize Docker Swarm
+  community.docker.docker_swarm:
+    state: present
+    advertise_addr: "{{ docker_swarm_bootstrap_advertise_addr }}"
+    listen_addr: "{{ docker_swarm_bootstrap_listen_addr }}"
+  become: true
