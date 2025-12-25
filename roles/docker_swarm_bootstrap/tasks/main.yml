@@ -33,7 +33,7 @@
 
 - name: Ensure Python venv tooling is present
   ansible.builtin.apt:
-    name: "{{ docker_swarm_bootstrap_python_venv_package }}"
+    name: "python3-venv"
     state: present
     update_cache: true
   become: true
@@ -53,9 +53,11 @@
     recurse: true
   become: true
 
-- name: Ensure Docker SDK is present in venv
+- name: Ensure Docker Python dependencies are present in venv
   ansible.builtin.pip:
-    name: "docker"
+    name:
+      - "docker"
+      - "jsondiff"
     state: present
     executable: "{{ docker_swarm_bootstrap_venv_path }}/bin/pip"
   become: true

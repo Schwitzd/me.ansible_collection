@@ -13,7 +13,8 @@ The swarm is configured for dual-stack networking by default (IPv4 + IPv6) by li
 | `docker_swarm_bootstrap_user` | Owner user for created files and venv | `root` |
 | `docker_swarm_bootstrap_group` | Owner group for created files and venv | `root` |
 | `docker_swarm_bootstrap_venv_path` | Python venv path for Docker SDK | `{{ docker_swarm_bootstrap_base_path }}/venv` |
-| `docker_swarm_bootstrap_python_venv_package` | OS package for Python venv support | `python3-venv` |
+| `docker_swarm_bootstrap_listen_addr` | Swarm listen address (IP or interface name) | `{{ ansible_facts['default_ipv6']['interface'] | default(ansible_facts['default_ipv4']['interface'], true) }}` |
+| `docker_swarm_bootstrap_advertise_addr` | Swarm advertise address (IPv6 preferred, IPv4 fallback) | `{{ ansible_facts['default_ipv6']['address'] | default(ansible_facts['default_ipv4']['address'], true) }}` |
 
 ## Example usage
 

@@ -3,7 +3,6 @@ docker_swarm_bootstrap_user: "root"
 docker_swarm_bootstrap_group: "root"
 
 docker_swarm_bootstrap_venv_path: "{{ docker_swarm_bootstrap_base_path }}/venv"
-docker_swarm_bootstrap_python_venv_package: "python3-venv"
 
 docker_swarm_bootstrap_listen_addr: "{{ ansible_facts['default_ipv6']['interface'] | default(ansible_facts['default_ipv4']['interface'], true) }}"
 docker_swarm_bootstrap_advertise_addr: "{{ ansible_facts['default_ipv6']['address'] | default(ansible_facts['default_ipv4']['address'], true) }}"
