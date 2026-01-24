@@ -17,6 +17,7 @@
     state: directory
     mode: "0700"
   delegate_to: localhost
+  become: false
 
 - name: Create a temporary working directory on the controller
   ansible.builtin.tempfile:
@@ -24,6 +25,7 @@
     suffix: kubeconfig_context
   register: kubeconfig_context_tmpdir
   delegate_to: localhost
+  become: false
 
 - name: Read kubeconfig from managed host
   ansible.builtin.slurp:
@@ -38,6 +40,7 @@
     mode: "0600"
   no_log: true
   delegate_to: localhost
+  become: false
 
 - name: Extract current context from remote kubeconfig
   ansible.builtin.command:
@@ -55,13 +58,22 @@
   changed_when: false
   no_log: true
   delegate_to: localhost
+  become: false
 
 - name: Build updated kubeconfig
   ansible.builtin.set_fact:
     kubeconfig_new_server: "{{ kubeconfig_context_kube_api_scheme }}://{{ kube_api_fqdn }}:{{ kubeconfig_context_kube_api_port }}"
     kubeconfig_cluster_name: "{{ kube_context_name }}"
     kubeconfig_user_name: "{{ kube_context_name }}"
+  no_log: true
+
+- name: Parse minified kubeconfig
+  ansible.builtin.set_fact:
     kubeconfig_minified: "{{ kubeconfig_minified_raw.stdout | from_json }}"
+  no_log: true
+
+- name: Build updated kubeconfig content
+  ansible.builtin.set_fact:
     kubeconfig_updated: >-
       {{
         {
@@ -106,12 +118,14 @@
     mode: "0600"
   no_log: true
   delegate_to: localhost
+  become: false
 
 - name: Check if local kubeconfig exists
   ansible.builtin.stat:
     path: "{{ kubeconfig_local_path }}"
   register: kubeconfig_local_stat
   delegate_to: localhost
+  become: false
 
 - name: Capture local current context
   ansible.builtin.command:
@@ -125,6 +139,7 @@
   changed_when: false
   failed_when: false
   delegate_to: localhost
+  become: false
   when: kubeconfig_local_stat.stat.exists
 
 - name: Normalize local current context value
@@ -137,6 +152,7 @@
   register: kubeconfig_backup_timestamp
   changed_when: false
   delegate_to: localhost
+  become: false
   when: kubeconfig_local_stat.stat.exists and kubeconfig_context_backup_enabled
 
 - name: Copy kubeconfig backup
@@ -146,6 +162,7 @@
     mode: "0600"
   no_log: true
   delegate_to: localhost
+  become: false
   when: kubeconfig_local_stat.stat.exists and kubeconfig_context_backup_enabled
 
 - name: Check if context exists in local kubeconfig
@@ -161,6 +178,7 @@
   register: kubeconfig_local_contexts
   changed_when: false
   delegate_to: localhost
+  become: false
   when: kubeconfig_local_stat.stat.exists
 
 - name: Remove existing context from local kubeconfig
@@ -174,6 +192,7 @@
       - "{{ kube_context_name }}"
   changed_when: true
   delegate_to: localhost
+  become: false
   when:
     - kubeconfig_local_stat.stat.exists
     - kube_context_name in (kubeconfig_local_contexts.stdout_lines | default([]))
@@ -192,6 +211,7 @@
   changed_when: false
   no_log: true
   delegate_to: localhost
+  become: false
   when: kubeconfig_local_stat.stat.exists
 
 - name: Set merged kubeconfig content
@@ -237,6 +257,7 @@
   register: kubeconfig_local_slurp
   no_log: true
   delegate_to: localhost
+  become: false
   when: kubeconfig_local_stat.stat.exists
 
 - name: Set local kubeconfig content when absent
@@ -265,6 +286,7 @@
     suffix: kubeconfig
   register: kubeconfig_write_tmp
   delegate_to: localhost
+  become: false
   when: kubeconfig_changed
 
 - name: Write kubeconfig temp file
@@ -274,6 +296,7 @@
     mode: "0600"
   no_log: true
   delegate_to: localhost
+  become: false
   when: kubeconfig_changed
 
 - name: Replace local kubeconfig with new content
@@ -284,6 +307,7 @@
       - "{{ kubeconfig_write_tmp.path }}"
       - "{{ kubeconfig_local_path }}"
   delegate_to: localhost
+  become: false
   changed_when: kubeconfig_changed
   when: kubeconfig_changed
 
@@ -292,6 +316,7 @@
     path: "{{ kubeconfig_local_path }}"
     mode: "0600"
   delegate_to: localhost
+  become: false
 
 - name: Verify kubeconfig connectivity
   ansible.builtin.command:
@@ -305,6 +330,7 @@
       - --raw=/readyz
   changed_when: false
   delegate_to: localhost
+  become: false
   when: kubeconfig_context_verify_connectivity
 
 - name: Set output facts
