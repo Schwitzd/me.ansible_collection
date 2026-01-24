@@ -189,12 +189,21 @@
       - "{{ kubeconfig_local_path }}"
       - config
       - get-clusters
-      - -o
-      - name
   register: kubeconfig_local_clusters
   changed_when: false
+  failed_when: false
   delegate_to: localhost
   become: false
+  when: kubeconfig_local_stat.stat.exists
+
+- name: Normalize local cluster names
+  ansible.builtin.set_fact:
+    kubeconfig_local_clusters_list: >-
+      {{
+        (kubeconfig_local_clusters.stdout_lines | default([]))
+        | reject('match', '^NAME$')
+        | list
+      }}
   when: kubeconfig_local_stat.stat.exists
 
 - name: Check if user exists in local kubeconfig
@@ -205,12 +214,21 @@
       - "{{ kubeconfig_local_path }}"
       - config
       - get-users
-      - -o
-      - name
   register: kubeconfig_local_users
   changed_when: false
+  failed_when: false
   delegate_to: localhost
   become: false
+  when: kubeconfig_local_stat.stat.exists
+
+- name: Normalize local user names
+  ansible.builtin.set_fact:
+    kubeconfig_local_users_list: >-
+      {{
+        (kubeconfig_local_users.stdout_lines | default([]))
+        | reject('match', '^NAME$')
+        | list
+      }}
   when: kubeconfig_local_stat.stat.exists
 
 - name: Remove existing context from local kubeconfig
@@ -243,7 +261,7 @@
   become: false
   when:
     - kubeconfig_local_stat.stat.exists
-    - kube_context_name in (kubeconfig_local_clusters.stdout_lines | default([]))
+    - kube_context_name in (kubeconfig_local_clusters_list | default([]))
 
 - name: Remove existing user from local kubeconfig
   ansible.builtin.command:
@@ -259,7 +277,7 @@
   become: false
   when:
     - kubeconfig_local_stat.stat.exists
-    - kube_context_name in (kubeconfig_local_users.stdout_lines | default([]))
+    - kube_context_name in (kubeconfig_local_users_list | default([]))
 
 - name: Merge updated kubeconfig into local kubeconfig
   ansible.builtin.command:
