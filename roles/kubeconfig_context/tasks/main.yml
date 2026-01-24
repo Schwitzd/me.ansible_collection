@@ -85,7 +85,7 @@
               'name': kubeconfig_cluster_name,
               'cluster': kubeconfig_minified.clusters[0].cluster | combine({
                 'server': (
-                  ((kubeconfig_minified.clusters[0].cluster.server | regex_search('://(127\\.0\\.0\\.1|localhost|\\[::\\])(:\\d+)?')) is not none)
+                  ((kubeconfig_minified.clusters[0].cluster.server | regex_search('://(127\.0\.0\.1|localhost|\[::1\])(:\d+)?')) is not none)
                   | ternary(kubeconfig_new_server, kubeconfig_minified.clusters[0].cluster.server)
                 )
               })
