@@ -7,4 +7,4 @@ description: My personal Ansible collection
 readme: README.md
 repository: https://github.com/Schwitzd/me.ansible_collection
 license_file: LICENSE
-version: 1.9.2
+version: 1.9.3
