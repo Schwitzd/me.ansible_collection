@@ -181,6 +181,38 @@
   become: false
   when: kubeconfig_local_stat.stat.exists
 
+- name: Check if cluster exists in local kubeconfig
+  ansible.builtin.command:
+    argv:
+      - "{{ kubeconfig_context_kubectl_path }}"
+      - --kubeconfig
+      - "{{ kubeconfig_local_path }}"
+      - config
+      - get-clusters
+      - -o
+      - name
+  register: kubeconfig_local_clusters
+  changed_when: false
+  delegate_to: localhost
+  become: false
+  when: kubeconfig_local_stat.stat.exists
+
+- name: Check if user exists in local kubeconfig
+  ansible.builtin.command:
+    argv:
+      - "{{ kubeconfig_context_kubectl_path }}"
+      - --kubeconfig
+      - "{{ kubeconfig_local_path }}"
+      - config
+      - get-users
+      - -o
+      - name
+  register: kubeconfig_local_users
+  changed_when: false
+  delegate_to: localhost
+  become: false
+  when: kubeconfig_local_stat.stat.exists
+
 - name: Remove existing context from local kubeconfig
   ansible.builtin.command:
     argv:
@@ -197,7 +229,39 @@
     - kubeconfig_local_stat.stat.exists
     - kube_context_name in (kubeconfig_local_contexts.stdout_lines | default([]))
 
-- name: Merge updated context into local kubeconfig
+- name: Remove existing cluster from local kubeconfig
+  ansible.builtin.command:
+    argv:
+      - "{{ kubeconfig_context_kubectl_path }}"
+      - --kubeconfig
+      - "{{ kubeconfig_local_path }}"
+      - config
+      - delete-cluster
+      - "{{ kube_context_name }}"
+  changed_when: true
+  delegate_to: localhost
+  become: false
+  when:
+    - kubeconfig_local_stat.stat.exists
+    - kube_context_name in (kubeconfig_local_clusters.stdout_lines | default([]))
+
+- name: Remove existing user from local kubeconfig
+  ansible.builtin.command:
+    argv:
+      - "{{ kubeconfig_context_kubectl_path }}"
+      - --kubeconfig
+      - "{{ kubeconfig_local_path }}"
+      - config
+      - delete-user
+      - "{{ kube_context_name }}"
+  changed_when: true
+  delegate_to: localhost
+  become: false
+  when:
+    - kubeconfig_local_stat.stat.exists
+    - kube_context_name in (kubeconfig_local_users.stdout_lines | default([]))
+
+- name: Merge updated kubeconfig into local kubeconfig
   ansible.builtin.command:
     argv:
       - "{{ kubeconfig_context_kubectl_path }}"
