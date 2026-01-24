@@ -1,0 +1,318 @@
+---
+- name: Assert required variables are set
+  ansible.builtin.assert:
+    that:
+      - kube_context_name is defined
+      - kube_context_name | length > 0
+      - kube_api_fqdn is defined
+      - kube_api_fqdn | length > 0
+
+- name: Resolve local kubeconfig path
+  ansible.builtin.set_fact:
+    kubeconfig_local_path: "{{ kubeconfig_context_local_kubeconfig_path | regex_replace('^~', lookup('env', 'HOME')) }}"
+
+- name: Ensure local kubeconfig directory exists
+  ansible.builtin.file:
+    path: "{{ kubeconfig_local_path | dirname }}"
+    state: directory
+    mode: "0700"
+  delegate_to: localhost
+
+- name: Create a temporary working directory on the controller
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: kubeconfig_context
+  register: kubeconfig_context_tmpdir
+  delegate_to: localhost
+
+- name: Read kubeconfig from managed host
+  ansible.builtin.slurp:
+    path: "{{ kubeconfig_context_remote_kubeconfig_path }}"
+  register: kubeconfig_remote_slurp
+  no_log: true
+
+- name: Write remote kubeconfig to controller temp file
+  ansible.builtin.copy:
+    content: "{{ kubeconfig_remote_slurp.content | b64decode }}"
+    dest: "{{ kubeconfig_context_tmpdir.path }}/remote_kubeconfig.yaml"
+    mode: "0600"
+  no_log: true
+  delegate_to: localhost
+
+- name: Extract current context from remote kubeconfig
+  ansible.builtin.command:
+    argv:
+      - "{{ kubeconfig_context_kubectl_path }}"
+      - --kubeconfig
+      - "{{ kubeconfig_context_tmpdir.path }}/remote_kubeconfig.yaml"
+      - config
+      - view
+      - --minify
+      - --raw
+      - -o
+      - json
+  register: kubeconfig_minified_raw
+  changed_when: false
+  no_log: true
+  delegate_to: localhost
+
+- name: Build updated kubeconfig
+  ansible.builtin.set_fact:
+    kubeconfig_new_server: "{{ kubeconfig_context_kube_api_scheme }}://{{ kube_api_fqdn }}:{{ kubeconfig_context_kube_api_port }}"
+    kubeconfig_cluster_name: "{{ kube_context_name }}"
+    kubeconfig_user_name: "{{ kube_context_name }}"
+    kubeconfig_minified: "{{ kubeconfig_minified_raw.stdout | from_json }}"
+    kubeconfig_updated: >-
+      {{
+        {
+          'apiVersion': (kubeconfig_minified.apiVersion | default('v1')),
+          'kind': (kubeconfig_minified.kind | default('Config')),
+          'preferences': (kubeconfig_minified.preferences | default({})),
+          'clusters': [
+            {
+              'name': kubeconfig_cluster_name,
+              'cluster': kubeconfig_minified.clusters[0].cluster | combine({
+                'server': (
+                  ((kubeconfig_minified.clusters[0].cluster.server | regex_search('://(127\\.0\\.0\\.1|localhost|\\[::\\])(:\\d+)?')) is not none)
+                  | ternary(kubeconfig_new_server, kubeconfig_minified.clusters[0].cluster.server)
+                )
+              })
+            }
+          ],
+          'users': [
+            {
+              'name': kubeconfig_user_name,
+              'user': kubeconfig_minified.users[0].user
+            }
+          ],
+          'contexts': [
+            {
+              'name': kube_context_name,
+              'context': kubeconfig_minified.contexts[0].context | combine({
+                'cluster': kubeconfig_cluster_name,
+                'user': kubeconfig_user_name
+              })
+            }
+          ],
+          'current-context': kube_context_name
+        }
+      }}
+  no_log: true
+
+- name: Write updated kubeconfig to temp file
+  ansible.builtin.copy:
+    content: "{{ kubeconfig_updated | to_nice_yaml(indent=2) }}"
+    dest: "{{ kubeconfig_context_tmpdir.path }}/updated_kubeconfig.yaml"
+    mode: "0600"
+  no_log: true
+  delegate_to: localhost
+
+- name: Check if local kubeconfig exists
+  ansible.builtin.stat:
+    path: "{{ kubeconfig_local_path }}"
+  register: kubeconfig_local_stat
+  delegate_to: localhost
+
+- name: Capture local current context
+  ansible.builtin.command:
+    argv:
+      - "{{ kubeconfig_context_kubectl_path }}"
+      - --kubeconfig
+      - "{{ kubeconfig_local_path }}"
+      - config
+      - current-context
+  register: kubeconfig_local_current_context
+  changed_when: false
+  failed_when: false
+  delegate_to: localhost
+  when: kubeconfig_local_stat.stat.exists
+
+- name: Normalize local current context value
+  ansible.builtin.set_fact:
+    kubeconfig_local_current_context_name: >-
+      {{ (kubeconfig_local_current_context | default({'stdout': ''})).stdout }}
+
+- name: Create kubeconfig backup
+  ansible.builtin.command: date +%Y%m%d%H%M%S
+  register: kubeconfig_backup_timestamp
+  changed_when: false
+  delegate_to: localhost
+  when: kubeconfig_local_stat.stat.exists and kubeconfig_context_backup_enabled
+
+- name: Copy kubeconfig backup
+  ansible.builtin.copy:
+    src: "{{ kubeconfig_local_path }}"
+    dest: "{{ kubeconfig_local_path }}.bak_{{ kubeconfig_backup_timestamp.stdout }}"
+    mode: "0600"
+  no_log: true
+  delegate_to: localhost
+  when: kubeconfig_local_stat.stat.exists and kubeconfig_context_backup_enabled
+
+- name: Check if context exists in local kubeconfig
+  ansible.builtin.command:
+    argv:
+      - "{{ kubeconfig_context_kubectl_path }}"
+      - --kubeconfig
+      - "{{ kubeconfig_local_path }}"
+      - config
+      - get-contexts
+      - -o
+      - name
+  register: kubeconfig_local_contexts
+  changed_when: false
+  delegate_to: localhost
+  when: kubeconfig_local_stat.stat.exists
+
+- name: Remove existing context from local kubeconfig
+  ansible.builtin.command:
+    argv:
+      - "{{ kubeconfig_context_kubectl_path }}"
+      - --kubeconfig
+      - "{{ kubeconfig_local_path }}"
+      - config
+      - delete-context
+      - "{{ kube_context_name }}"
+  changed_when: true
+  delegate_to: localhost
+  when:
+    - kubeconfig_local_stat.stat.exists
+    - kube_context_name in (kubeconfig_local_contexts.stdout_lines | default([]))
+
+- name: Merge updated context into local kubeconfig
+  ansible.builtin.command:
+    argv:
+      - "{{ kubeconfig_context_kubectl_path }}"
+      - config
+      - view
+      - --raw
+      - --flatten
+  environment:
+    KUBECONFIG: "{{ kubeconfig_local_path }}:{{ kubeconfig_context_tmpdir.path }}/updated_kubeconfig.yaml"
+  register: kubeconfig_merged_raw
+  changed_when: false
+  no_log: true
+  delegate_to: localhost
+  when: kubeconfig_local_stat.stat.exists
+
+- name: Set merged kubeconfig content
+  ansible.builtin.set_fact:
+    kubeconfig_merged_obj: "{{ kubeconfig_merged_raw.stdout | from_yaml }}"
+  no_log: true
+  when: kubeconfig_local_stat.stat.exists
+
+- name: Set merged kubeconfig content when local config is absent
+  ansible.builtin.set_fact:
+    kubeconfig_merged_obj: "{{ kubeconfig_updated }}"
+  no_log: true
+  when: not kubeconfig_local_stat.stat.exists
+
+- name: Set final kubeconfig current context
+  ansible.builtin.set_fact:
+    kubeconfig_final_obj: >-
+      {{
+        kubeconfig_merged_obj | combine({
+          'current-context': (
+            kubeconfig_context_set_current_context
+            | ternary(
+                kube_context_name,
+                (
+                  kubeconfig_local_current_context_name
+                  if (kubeconfig_local_current_context_name in (kubeconfig_merged_obj.contexts | default([]) | map(attribute='name') | list))
+                  else (kubeconfig_merged_obj['current-context'] | default(''))
+                )
+            )
+          )
+        })
+      }}
+  no_log: true
+
+- name: Render final kubeconfig YAML
+  ansible.builtin.set_fact:
+    kubeconfig_final_yaml: "{{ kubeconfig_final_obj | to_nice_yaml(indent=2) }}"
+  no_log: true
+
+- name: Read existing local kubeconfig
+  ansible.builtin.slurp:
+    path: "{{ kubeconfig_local_path }}"
+  register: kubeconfig_local_slurp
+  no_log: true
+  delegate_to: localhost
+  when: kubeconfig_local_stat.stat.exists
+
+- name: Set local kubeconfig content when absent
+  ansible.builtin.set_fact:
+    kubeconfig_local_content: ""
+  when: not kubeconfig_local_stat.stat.exists
+
+- name: Set local kubeconfig content when present
+  ansible.builtin.set_fact:
+    kubeconfig_local_content: "{{ kubeconfig_local_slurp.content | b64decode }}"
+  no_log: true
+  when: kubeconfig_local_stat.stat.exists
+
+- name: Determine kubeconfig content change
+  ansible.builtin.set_fact:
+    kubeconfig_changed: >-
+      {{
+        (not kubeconfig_local_stat.stat.exists)
+        or (kubeconfig_local_content != kubeconfig_final_yaml)
+      }}
+
+- name: Write kubeconfig atomically
+  ansible.builtin.tempfile:
+    state: file
+    path: "{{ kubeconfig_local_path | dirname }}"
+    suffix: kubeconfig
+  register: kubeconfig_write_tmp
+  delegate_to: localhost
+  when: kubeconfig_changed
+
+- name: Write kubeconfig temp file
+  ansible.builtin.copy:
+    content: "{{ kubeconfig_final_yaml }}"
+    dest: "{{ kubeconfig_write_tmp.path }}"
+    mode: "0600"
+  no_log: true
+  delegate_to: localhost
+  when: kubeconfig_changed
+
+- name: Replace local kubeconfig with new content
+  ansible.builtin.command:
+    argv:
+      - mv
+      - -f
+      - "{{ kubeconfig_write_tmp.path }}"
+      - "{{ kubeconfig_local_path }}"
+  delegate_to: localhost
+  changed_when: kubeconfig_changed
+  when: kubeconfig_changed
+
+- name: Ensure kubeconfig file permissions
+  ansible.builtin.file:
+    path: "{{ kubeconfig_local_path }}"
+    mode: "0600"
+  delegate_to: localhost
+
+- name: Verify kubeconfig connectivity
+  ansible.builtin.command:
+    argv:
+      - "{{ kubeconfig_context_kubectl_path }}"
+      - --kubeconfig
+      - "{{ kubeconfig_local_path }}"
+      - --context
+      - "{{ kube_context_name }}"
+      - get
+      - --raw=/readyz
+  changed_when: false
+  delegate_to: localhost
+  when: kubeconfig_context_verify_connectivity
+
+- name: Set output facts
+  ansible.builtin.set_fact:
+    kubeconfig_context_name: "{{ kube_context_name }}"
+    kubeconfig_changed: "{{ kubeconfig_changed }}"
+    kubeconfig_backup_path: >-
+      {{
+        (kubeconfig_local_stat.stat.exists and kubeconfig_context_backup_enabled and (kubeconfig_backup_timestamp is defined))
+        | ternary(kubeconfig_local_path + '.bak_' + kubeconfig_backup_timestamp.stdout, omit)
+      }}

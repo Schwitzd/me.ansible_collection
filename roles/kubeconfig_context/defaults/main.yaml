@@ -1,0 +1,9 @@
+---
+kubeconfig_context_remote_kubeconfig_path: /etc/rancher/k3s/k3s.yaml
+kubeconfig_context_local_kubeconfig_path: ~/.kube/config
+kubeconfig_context_kube_api_port: 6443
+kubeconfig_context_kube_api_scheme: https
+kubeconfig_context_set_current_context: false
+kubeconfig_context_backup_enabled: true
+kubeconfig_context_verify_connectivity: true
+kubeconfig_context_kubectl_path: kubectl
