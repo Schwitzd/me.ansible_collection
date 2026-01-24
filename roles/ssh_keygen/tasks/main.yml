@@ -44,6 +44,22 @@
     mode: '0644'
   when: ssh_keygen_present.stat.exists
 
+- name: Fetch host key for remote server
+  ansible.builtin.command:
+    cmd: "ssh-keyscan -H {{ ssh_keygen_server }}"
+  register: ssh_keygen_host_key
+  changed_when: false
+  delegate_to: localhost
+  when: ssh_keygen_copy_key
+
+- name: Ensure remote server host key is in known_hosts
+  ansible.builtin.known_hosts:
+    path: "/home/{{ ansible_facts['user_id'] }}/.ssh/known_hosts"
+    name: "{{ ssh_keygen_server }}"
+    key: "{{ ssh_keygen_host_key.stdout }}"
+  delegate_to: localhost
+  when: ssh_keygen_copy_key
+
 - name: Copy public SSH key to remote server
   ansible.posix.authorized_key:
     user: "{{ ssh_keygen_user }}"
