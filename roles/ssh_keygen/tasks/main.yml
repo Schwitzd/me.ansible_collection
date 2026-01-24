@@ -1,20 +1,20 @@
 ---
 - name: Ensure the .ssh directory exists
   ansible.builtin.file:
-    path: "/home/{{ ansible_user_id }}/.ssh"
+    path: "/home/{{ ansible_facts['user_id'] }}/.ssh"
     state: directory
-    owner: "{{ ansible_user_id }}"
-    group: "{{ ansible_user_id }}"
+    owner: "{{ ansible_facts['user_id'] }}"
+    group: "{{ ansible_facts['user_id'] }}"
     mode: '0700'
 
 - name: Check if SSH key exists
   ansible.builtin.stat:
-    path: "/home/{{ ansible_user_id }}/.ssh/{{ ssh_keygen_name }}"
+    path: "/home/{{ ansible_facts['user_id'] }}/.ssh/{{ ssh_keygen_name }}"
   register: ssh_keygen_present
 
 - name: Remove old SSH known_hosts entry for remote server
   ansible.builtin.known_hosts:
-    path: "/home/{{ ansible_user_id }}/.ssh/known_hosts"
+    path: "/home/{{ ansible_facts['user_id'] }}/.ssh/known_hosts"
     name: "{{ ssh_keygen_server }}"
     state: absent
   when: ssh_keygen_present.stat.exists
@@ -27,20 +27,20 @@
 
 - name: Generate SSH key pair if it does not exist
   community.crypto.openssh_keypair:
-    path: "/home/{{ ansible_user_id }}/.ssh/{{ ssh_keygen_name }}"
+    path: "/home/{{ ansible_facts['user_id'] }}/.ssh/{{ ssh_keygen_name }}"
     type: ed25519
     passphrase: "{{ ssh_keygen_passphrase if ssh_keygen_encrypt_privatekey else omit }}"
-    owner: "{{ ansible_user_id }}"
-    group: "{{ ansible_user_id }}"
+    owner: "{{ ansible_facts['user_id'] }}"
+    group: "{{ ansible_facts['user_id'] }}"
     mode: "0600"
   when: not ssh_keygen_present.stat.exists
   register: ssh_keygen_result
 
 - name: Ensure the public key has correct permissions
   ansible.builtin.file:
-    path: "/home/{{ ansible_user_id }}/.ssh/{{ ssh_keygen_name }}.pub"
-    owner: "{{ ansible_user_id }}"
-    group: "{{ ansible_user_id }}"
+    path: "/home/{{ ansible_facts['user_id'] }}/.ssh/{{ ssh_keygen_name }}.pub"
+    owner: "{{ ansible_facts['user_id'] }}"
+    group: "{{ ansible_facts['user_id'] }}"
     mode: '0644'
   when: ssh_keygen_present.stat.exists
 
@@ -48,7 +48,7 @@
   ansible.posix.authorized_key:
     user: "{{ ssh_keygen_user }}"
     state: present
-    key: "{{ lookup('file', '/home/{}/.ssh/{}.pub'.format(ansible_user_id, ssh_keygen_name)) }}"
+    key: "{{ lookup('file', '/home/{}/.ssh/{}.pub'.format(ansible_facts['user_id'], ssh_keygen_name)) }}"
   delegate_to: "{{ ssh_keygen_server }}"
   when: ssh_keygen_copy_key
 
