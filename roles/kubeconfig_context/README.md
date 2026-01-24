@@ -19,7 +19,6 @@ It replaces any existing entries with the same name, preserves unrelated context
 | `kubeconfig_context_remote_kubeconfig_path` | Remote kubeconfig path on the target cluster. | `/etc/rancher/k3s/k3s.yaml` |
 | `kubeconfig_context_local_kubeconfig_path` | Local kubeconfig path on the controller. | `~/.kube/config` |
 | `kubeconfig_context_kube_api_port` | Kubernetes API port. | `6443` |
-| `kubeconfig_context_kube_api_scheme` | Kubernetes API scheme. | `https` |
 | `kubeconfig_context_set_current_context` | Set current context to `kube_context_name`. | `false` |
 | `kubeconfig_context_backup_enabled` | Create a timestamped backup of the local kubeconfig. | `true` |
 | `kubeconfig_context_verify_connectivity` | Verify the context with `kubectl get --raw=/readyz`. | `true` |

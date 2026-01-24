@@ -62,7 +62,7 @@
 
 - name: Build updated kubeconfig
   ansible.builtin.set_fact:
-    kubeconfig_new_server: "{{ kubeconfig_context_kube_api_scheme }}://{{ kube_api_fqdn }}:{{ kubeconfig_context_kube_api_port }}"
+    kubeconfig_new_server: "https://{{ kube_api_fqdn }}:{{ kubeconfig_context_kube_api_port }}"
     kubeconfig_cluster_name: "{{ kube_context_name }}"
     kubeconfig_user_name: "{{ kube_context_name }}"
   no_log: true
@@ -85,7 +85,7 @@
               'name': kubeconfig_cluster_name,
               'cluster': kubeconfig_minified.clusters[0].cluster | combine({
                 'server': (
-                  ((kubeconfig_minified.clusters[0].cluster.server | regex_search('://(127\\.0\\.0\\.1|localhost|\\[::\\])(:\\d+)?')) is not none)
+                  ((kubeconfig_minified.clusters[0].cluster.server | regex_search('://(127\.0\.0\.1|localhost|\[::1\])(:\d+)?')) is not none)
                   | ternary(kubeconfig_new_server, kubeconfig_minified.clusters[0].cluster.server)
                 )
               })
