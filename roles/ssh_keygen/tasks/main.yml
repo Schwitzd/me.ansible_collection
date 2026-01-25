@@ -46,7 +46,7 @@
 
 - name: Fetch host key for remote server
   ansible.builtin.command:
-    cmd: "ssh-keyscan -H {{ ssh_keygen_server }}"
+    cmd: "ssh-keyscan -t ed25519 {{ ssh_keygen_server }}"
   register: ssh_keygen_host_key
   changed_when: false
   delegate_to: localhost
@@ -56,7 +56,7 @@
   ansible.builtin.known_hosts:
     path: "/home/{{ ansible_facts['user_id'] }}/.ssh/known_hosts"
     name: "{{ ssh_keygen_server }}"
-    key: "{{ ssh_keygen_host_key.stdout }}"
+    key: "{{ (ssh_keygen_host_key.stdout_lines | reject('match', '^#') | list | first) | default('', true) }}"
   delegate_to: localhost
   when: ssh_keygen_copy_key
 
