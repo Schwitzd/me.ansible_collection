@@ -2,12 +2,62 @@
 - name: Check if OpenSSH is installed
   ansible.builtin.stat:
     path: /etc/ssh/sshd_config
-  register: sshd_config_exists
+  register: sshd_hardening_config_exists
 
 - name: Abort if sshd is not installed
   ansible.builtin.fail:
     msg: "OpenSSH server is not installed. Exiting."
-  when: not sshd_config_exists.stat.exists
+  when: not sshd_hardening_config_exists.stat.exists
+
+- name: Read the main sshd configuration
+  ansible.builtin.slurp:
+    src: /etc/ssh/sshd_config
+  register: sshd_hardening_main_config
+
+- name: Abort if the drop-in directory is not included by sshd_config
+  ansible.builtin.fail:
+    msg: >-
+      /etc/ssh/sshd_config has no 'Include' for {{ sshd_hardening_config_path | dirname }},
+      so {{ sshd_hardening_config_path }} would be ignored. Add
+      'Include {{ sshd_hardening_config_path | dirname }}/*.conf' at the top of the file
+      or set sshd_hardening_config_path to /etc/ssh/sshd_config.
+  when:
+    - (sshd_hardening_config_path | dirname) != '/etc/ssh'
+    - >-
+      (sshd_hardening_main_config.content | b64decode) is not
+      regex('^\s*Include\s+.*' ~ (sshd_hardening_config_path | dirname | basename | regex_escape), multiline=True)
+
+- name: Look for authorized_keys files
+  ansible.builtin.find:
+    paths:
+      - /root
+      - /home
+    patterns: authorized_keys
+    recurse: true
+    depth: 3
+    size: 1
+  register: sshd_hardening_authorized_keys
+  when:
+    - sshd_hardening_lockout_check
+    - sshd_hardening_password_authentication == "no"
+
+- name: Abort if disabling password logins would lock everyone out
+  ansible.builtin.fail:
+    msg: >-
+      PasswordAuthentication is disabled but no non-empty authorized_keys file was found
+      under /root or /home. Install a public key first, or set
+      sshd_hardening_lockout_check: false to skip this check.
+  when:
+    - sshd_hardening_lockout_check
+    - sshd_hardening_password_authentication == "no"
+    - sshd_hardening_authorized_keys.matched == 0
+
+- name: Remove the legacy drop-in
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config.d/sshd.conf
+    state: absent
+  when: sshd_hardening_config_path != '/etc/ssh/sshd_config.d/sshd.conf'
+  notify: Restart sshd
 
 - name: Apply hardened SSH configuration
   ansible.builtin.template:
@@ -16,4 +66,5 @@
     owner: root
     group: root
     mode: '0600'
-  notify: restart sshd
+    validate: sshd -t -f %s
+  notify: Restart sshd
