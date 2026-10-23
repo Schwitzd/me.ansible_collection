@@ -19,6 +19,8 @@ This Ansible role creates an Ed25519 SSH key pair on the control node (the machi
 | `ssh_keygen_encrypt_privatekey`   | When `true`, encrypt the private key with a generated passphrase.             | `true`         |
 | `ssh_keygen_passphrase_length`    | Length of the generated passphrase (used when encryption is enabled).         | `32`           |
 | `ssh_keygen_copy_key`             | When `false`, skip copying the public key to the remote host.                 | `true`         |
+| `ssh_keygen_configure_ssh_config` | When `true`, create a `~/.ssh/config` entry for the remote server (requires `community.general` and `paramiko` on the control node). | `false`        |
+| `ssh_keygen_config_host`          | `Host` alias(es) for the entry: a string or a list (joined on one `Host` line).| `ssh_keygen_server` |
 
 ## Example Usage
 
@@ -48,5 +50,47 @@ This Ansible role creates an Ed25519 SSH key pair on the control node (the machi
         ssh_keygen_server: "bastion"
         ssh_keygen_copy_key: false
 ```
+
+### Add an `~/.ssh/config` Entry
+
+```yaml
+- hosts: localhost
+  gather_facts: false
+  roles:
+    - role: schwitzd.collection.ssh_keygen
+      vars:
+        ssh_keygen_user: "deploy"
+        ssh_keygen_server: "bastion"
+        ssh_keygen_configure_ssh_config: true
+        ssh_keygen_config_host: "bastion-prod"
+```
+
+To give the same server several aliases on a single `Host` line, pass a list:
+
+```yaml
+- hosts: localhost
+  gather_facts: false
+  roles:
+    - role: schwitzd.collection.ssh_keygen
+      vars:
+        ssh_keygen_user: "deploy"
+        ssh_keygen_server: "bastion"
+        ssh_keygen_configure_ssh_config: true
+        ssh_keygen_config_host:
+          - bastion-prod
+          - bp
+```
+
+This produces a single entry in `~/.ssh/config` (so `ssh bp` and `ssh bastion-prod` are equivalent):
+
+```
+Host bastion-prod bp
+    hostname bastion
+    identityfile /home/<user>/.ssh/id_ed25519
+    identitiesonly yes
+    user deploy
+```
+
+Each entry sets `HostName` (from `ansible_host` if defined, otherwise `ssh_keygen_server`), `User`, `IdentityFile` and `IdentitiesOnly yes`.
 
 When encryption is enabled, the generated passphrase is saved in `/tmp/<key_name>_passphrase.txt` on the control node for later retrieval. Remove it or store it securely once the key is deployed. When `ssh_keygen_copy_key` is `true`, the task delegates to `ssh_keygen_server` to install the public key into the target user’s `authorized_keys`. Use paramiko or another connection type if the remote host does not yet accept key-based authentication. 

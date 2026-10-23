@@ -6,3 +6,12 @@ ssh_keygen_encrypt_privatekey: true
 
 # Length of the randomly generated passphrase
 ssh_keygen_passphrase_length: 32
+
+# Copy the public key to the remote server
+ssh_keygen_copy_key: true
+
+# Create a ~/.ssh/config entry for the remote server
+ssh_keygen_configure_ssh_config: false
+
+# Host alias(es) for the ~/.ssh/config entry: a string or a list (defaults to ssh_keygen_server)
+ssh_keygen_config_host: "{{ ssh_keygen_server }}"
