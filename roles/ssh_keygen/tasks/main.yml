@@ -75,3 +75,27 @@
     mode: "0600"
   when: ssh_keygen_encrypt_privatekey
   delegate_to: localhost
+
+- name: Ensure the ssh config file exists with correct permissions
+  ansible.builtin.file:
+    path: "/home/{{ ansible_facts['user_id'] }}/.ssh/config"
+    state: touch
+    owner: "{{ ansible_facts['user_id'] }}"
+    group: "{{ ansible_facts['user_id'] }}"
+    mode: '0600'
+    modification_time: preserve
+    access_time: preserve
+  when: ssh_keygen_configure_ssh_config
+  delegate_to: localhost
+
+- name: Configure ssh config entry for remote server
+  community.general.ssh_config:
+    ssh_config_file: "/home/{{ ansible_facts['user_id'] }}/.ssh/config"
+    host: "{{ ssh_keygen_config_host if ssh_keygen_config_host is string else ssh_keygen_config_host | join(' ') }}"
+    hostname: "{{ (hostvars[ssh_keygen_server] | default({}))['ansible_host'] | default(ssh_keygen_server) }}"
+    remote_user: "{{ ssh_keygen_user }}"
+    identity_file: "/home/{{ ansible_facts['user_id'] }}/.ssh/{{ ssh_keygen_name }}"
+    identities_only: true
+    state: present
+  when: ssh_keygen_configure_ssh_config
+  delegate_to: localhost
